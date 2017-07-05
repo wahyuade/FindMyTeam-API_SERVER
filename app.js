@@ -85,15 +85,32 @@ var api_user = express.Router();
 
 api_user.use(function(req,res,next){
 	var collection = db.collection('users');
-	console.log('aman cuy');
-	next();
-	// console.log();
+	collection.findOne({x_api_key:req.headers.x_api_key}, function(err, result){
+		if(result != null){
+			if(result.role == 1){
+				next();
+			}
+			else{
+				res.json({status:'Unauthorized'});
+			}
+		}else{
+			res.json({status:'Unauthorized'});
+		}
+	});
 });
 
-api_user.get('/', upload.array(), function(req, res){
-	var data = {};
-	data.isi = req.headers;
-	res.json(data);
+api_user.get('/list_competition', function(req, res){
+	var collection = db.collection('competitions');
+	collection.find({}).toArray(function(err, result){
+		res.json(result);
+	});
+});
+
+api_user.get('/detail_competition', function(req, res){
+	var collection = db.collection('competitions');
+	collection.findOne(ObjectId(req.query._id), function(err, result){
+		res.json(result);
+	});
 });
 
 //MENDEFINISIKAN ROUTING PREFIX pada alamat / address http untuk /api_user
