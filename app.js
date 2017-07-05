@@ -129,6 +129,28 @@ api_user.post('/post_comment',upload.array(), function(req, res){
 	});
 });
 
+api_user.post('/create_team', upload.array('team_foto', 12), function(req, res){
+	var collection = db.collection('teams');
+	var data_team = {
+		team_name:req.body.team_name,
+		team_foto:req.files[0].filename,
+		member:[{
+			_id_user:req.headers.x_api_key,
+			role:0
+		}]
+	}
+	collection.insertOne(data_team, function(err, result){
+		res.json(data_team);
+	});
+});
+
+api_user.get('/list_my_team', function(req,res){
+	var collection = db.collection('teams');
+	collection.find({member:{$elemMatch:{_id_user:req.headers.x_api_key}}}).toArray(function(err, result){
+		res.json(result);
+	});
+});
+
 //MENDEFINISIKAN ROUTING PREFIX pada alamat / address http untuk /api_user
 app.use('/api_user', api_user);
 
