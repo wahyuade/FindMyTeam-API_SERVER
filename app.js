@@ -151,6 +151,13 @@ api_user.get('/list_my_team', function(req,res){
 	});
 });
 
+api_user.get('/detail_team', function(req, res){
+	var collection = db.collection('teams');
+	collection.findOne(ObjectId(req.query._id), function(err, result){
+		res.json(result);
+	});
+});
+
 //MENDEFINISIKAN ROUTING PREFIX pada alamat / address http untuk /api_user
 app.use('/api_user', api_user);
 
