@@ -2,13 +2,23 @@ var express = require('express');			 	// menggunakan library express untuk web s
 var app = express();						 	// memanggil library express
 var bodyParser = require('body-parser');		// menggunakan library body parser untuk mendapatkan data dari client
 var multer = require('multer');					// menggunakan library multer untuk multipart (form-data)
-var upload = multer();							// definisi penggunaan library multer
 var server = require('http').createServer(app);	// menggunakan library http untuk mengawasi port server di library socket.io
 var mongodb   = require('mongodb').MongoClient; // menggunakan library mongodb sebagai mongodb client
 var ObjectId = require('mongodb').ObjectId;		// untuk memanggil primary key (id)
 var io = require('socket.io').listen(server);	// menggunakan library socket.io untuk realtime socket
 var db;
 var port = process.env.PORT || 3000;
+
+var storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/');
+  },
+  filename: function (req, file, cb) {
+  		var name = Math.random().toString(32).slice(2)
+    	cb(null, name+file.originalname);
+  }
+});
+var upload = multer({ storage: storage });
 
 var url = 'mongodb://localhost:27017/find-my-team';
 mongodb.connect(url, function(err, dbase){
@@ -17,8 +27,8 @@ mongodb.connect(url, function(err, dbase){
 });
 
 //=============Setting app untuk express============
-app.use(bodyParser.json());							//parsing app json
 app.use(bodyParser.urlencoded({ extended: true })); //parsing x-form-url
+app.use(bodyParser.json());							//parsing app json
 
 // ===========ROUTING=============
 
@@ -113,8 +123,33 @@ api_admin.get('/', upload.array(), function(req, res){
 	res.json(data);
 });
 
+api_admin.post('/upload_competition', upload.array('foto', 12), function(req,res,next){
+	var data_competition = {};
+	var collection = db.collection('competitions');
+	data_competition = req.body;
+	data_competition.foto = req.files[0].filename;
+	collection.insertOne(data_competition, function(err, result){
+		res.json(data_competition);
+	})
+});
+
+api_admin.get('/list_competition', function(req, res){
+	var collection = db.collection('competitions');
+	collection.find({}).toArray(function(err, result){
+		res.json(result);
+	});
+});
+
+api_admin.get('/detail_competition', function(req, res){
+	var collection = db.collection('competitions');
+	collection.findOne(ObjectId(req.query._id), function(err, result){
+		res.json(result);
+	});
+});
+
 //MENDEFINISIKAN ROUTING PREFIX pada alamat / address http untuk /api_user
 app.use('/api_admin', api_admin);
+app.use(express.static('uploads'));
 
 server.listen(port);
 console.log('port connect in '+port);
