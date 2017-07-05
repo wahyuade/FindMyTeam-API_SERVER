@@ -26,7 +26,8 @@ app.post('/register', upload.array(), function(req,res,next){
 	var collection = db.collection('users');
 	collection.findOne({email:req.body.email}, function(err, result){
 		if(result == null){
-			collection.insertOne({firstname:req.body.firstname,lastname:req.body.lastname,email:req.body.email,password:req.body.password, skill_id:req.body.skill_id, role:1}, function(err, docs){
+			var x_api_key = Math.random().toString(32).slice(2)+Math.random().toString(32).slice(2)+Math.random().toString(32).slice(2);
+			collection.insertOne({firstname:req.body.firstname,lastname:req.body.lastname,email:req.body.email,password:req.body.password, skill_id:req.body.skill_id, role:1, x_api_key:x_api_key}, function(err, docs){
 				var response = {
 					success:true,
 					message:"Data berhasil di daftarkan"
@@ -69,24 +70,46 @@ app.post('/login',upload.array(), function(req, res, next){
 });
 
 
-//mendefinisikan variabel api untuk routing pada /api
-var api = express.Router();
+//mendefinisikan variabel api_user untuk routing pada /api_user
+var api_user = express.Router();
 
-api.use(function(req,res,next){
+api_user.use(function(req,res,next){
 	var collection = db.collection('users');
 	console.log('aman cuy');
 	next();
 	// console.log();
 });
 
-api.get('/', upload.array(), function(req, res){
+api_user.get('/', upload.array(), function(req, res){
 	var data = {};
 	data.isi = req.headers;
 	res.json(data);
 });
 
-//MENDEFINISIKAN ROUTING PREFIX pada alamat / address http untuk /api
-app.use('/api', api);
+//MENDEFINISIKAN ROUTING PREFIX pada alamat / address http untuk /api_user
+app.use('/api_user', api_user);
+
+//mendefinisikan variabel api_user untuk routing pada /api_user
+var api_admin = express.Router();
+
+api_admin.use(function(req,res,next){
+	var collection = db.collection('users');
+	collection.findOne({x_api_key:req.headers.x_api_key}, function(err, result){
+		if(result != null){
+			if(result.role == 0)
+				next();
+		}
+	});
+});
+
+api_admin.get('/', upload.array(), function(req, res){
+	var data = {};
+	data.isi = req.headers;
+	res.json(data);
+});
+
+//MENDEFINISIKAN ROUTING PREFIX pada alamat / address http untuk /api_user
+app.use('/api_admin', api_admin);
 
 server.listen(port);
 console.log('port connect in '+port);
