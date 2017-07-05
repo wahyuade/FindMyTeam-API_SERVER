@@ -14,7 +14,7 @@ var storage = multer.diskStorage({
     cb(null, 'uploads/');
   },
   filename: function (req, file, cb) {
-  		var name = Math.random().toString(32).slice(2)
+  		var name = Math.random().toString(32).slice(2);
     	cb(null, name+file.originalname);
   }
 });
@@ -109,6 +109,22 @@ api_user.get('/list_competition', function(req, res){
 api_user.get('/detail_competition', function(req, res){
 	var collection = db.collection('competitions');
 	collection.findOne(ObjectId(req.query._id), function(err, result){
+		res.json(result);
+	});
+});
+
+api_user.post('/post_comment',upload.array(), function(req, res){
+	var collection = db.collection('competitions');
+	var _id_comment = Math.random().toString(32).slice(2);
+	collection.updateOne({_id:ObjectId(req.body._id_comment)}, {$push : 
+		{ 
+			comments:{
+				_id_comment:_id_comment,
+				firstname:req.body.firstname,
+				comment:req.body.comment,
+				date:req.body.date,
+				user_foto:req.body.user_foto
+		}}}, function(err, result){
 		res.json(result);
 	});
 });
