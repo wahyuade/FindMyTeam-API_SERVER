@@ -96,8 +96,13 @@ api_admin.use(function(req,res,next){
 	var collection = db.collection('users');
 	collection.findOne({x_api_key:req.headers.x_api_key}, function(err, result){
 		if(result != null){
-			if(result.role == 0)
+			if(result.role == 0){
 				next();
+			}
+			else{
+				res.json({status:'Unauthorized'});
+			}
+
 		}
 	});
 });
