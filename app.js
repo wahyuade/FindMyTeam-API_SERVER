@@ -112,15 +112,17 @@ api_admin.use(function(req,res,next){
 			else{
 				res.json({status:'Unauthorized'});
 			}
-
+		}else{
+			res.json({status:'Unauthorized'});
 		}
 	});
 });
 
-api_admin.get('/', upload.array(), function(req, res){
-	var data = {};
-	data.isi = req.headers;
-	res.json(data);
+api_admin.get('/list_user', function(req, res){
+	var collection = db.collection('users');
+	collection.find().toArray(function(err, result){
+		res.json(result);
+	});
 });
 
 api_admin.post('/upload_competition', upload.array('foto', 12), function(req,res,next){
