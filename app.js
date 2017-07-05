@@ -147,6 +147,13 @@ api_admin.get('/detail_competition', function(req, res){
 	});
 });
 
+api_admin.delete('/delete_competition', function(req, res){
+	var collection = db.collection('competitions');
+	collection.removeOne({_id:ObjectId(req.query._id)}, function(err, result){
+		res.json(result);
+	})
+})
+
 //MENDEFINISIKAN ROUTING PREFIX pada alamat / address http untuk /api_user
 app.use('/api_admin', api_admin);
 app.use(express.static('uploads'));
