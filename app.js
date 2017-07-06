@@ -157,7 +157,6 @@ api_user.get('/detail_team', function(req, res){
 		res.json(result);
 	});
 });
-
 api_user.get('/list_user', function(req, res){
 	var collection = db.collection('users');
 	collection.find({skill_id:req.query.skill_id}).toArray(function(err, result){
@@ -194,7 +193,7 @@ api_user.post('/register_my_team', upload.array(), function(req, res){
 	var check = db.collection('competitions');
 	var response = {};
 	
-	check.findOne({joined_team:{$elemMatch:{_id:ObjectId(req.body._id_team)}}},{joined_team:1}, function(err, hasil){
+	check.findOne({joined_team:{$elemMatch:{_id:ObjectId(req.body._id_team)}}, _id:ObjectId(req.body._id_competition)},{joined_team:1}, function(err, hasil){
 		if(hasil!=null){
 			response.success=false;
 			response.message="Mohon maaf, team Anda sudah tergabung di event ini";
@@ -216,6 +215,33 @@ api_user.post('/register_my_team', upload.array(), function(req, res){
 		}
 	});
 
+});
+
+api_user.get('/my_joined_competition', function(req, res){
+	var comp = db.collection('competitions');
+	var team = db.collection('teams');
+	comp.find({}, {comments:0}).toArray(function(err, data_comp){
+		team.find({member:{$elemMatch:{_id_user:req.headers.x_api_key}}}).toArray(function(err, data_team){
+			var i,j;
+			var response = new Array();
+			var my_join_comp = new Array();
+			for(i=0;i<data_comp.length;i++){
+				for(j=0;j<data_comp[i].joined_team.length;j++){
+					data_comp[i].joined_team[j].id_comp = i;
+					response.push(data_comp[i].joined_team[j]);
+				}
+			}
+
+			for(i=0;i<response.length;i++){
+				for(j=0;j<data_team.length;j++){
+					if(response[i].team_foto==data_team[j].team_foto){
+						my_join_comp.push(data_comp[response[i].id_comp]);
+					}
+				}
+			}
+			res.json(my_join_comp);
+		});
+	});
 });
 
 //MENDEFINISIKAN ROUTING PREFIX pada alamat / address http untuk /api_user
