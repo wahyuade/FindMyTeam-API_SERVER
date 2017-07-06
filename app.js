@@ -158,6 +158,22 @@ api_user.get('/detail_team', function(req, res){
 	});
 });
 
+api_user.post('/group_chat', upload.array(), function(req, res){
+	var collection = db.collection('teams');
+	res.json(req.body);
+	collection.updateOne({_id:ObjectId(req.body._id)}, {$push:{
+		chat:{
+			_id_user:req.headers.x_api_key,
+			firstname:req.body.firstname,
+			user_foto:req.body.user_foto,
+			message:req.body.message,
+			date:req.body.date
+		}
+	}}), function(err, result){
+		res.json(req.body);
+	};
+});
+
 //MENDEFINISIKAN ROUTING PREFIX pada alamat / address http untuk /api_user
 app.use('/api_user', api_user);
 
