@@ -146,13 +146,27 @@ api_user.post('/create_team', upload.array('team_foto', 12), function(req, res){
 
 api_user.get('/list_my_team', function(req,res){
 	var collection = db.collection('teams');
-	collection.find({member:{$elemMatch:{_id_user:req.headers.x_api_key}}}).toArray(function(err, result){
+	collection.find({member:{$elemMatch:{_id_user:req.headers.x_api_key}}}, {chat:0}).toArray(function(err, result){
 		res.json(result);
 	});
 });
 
 api_user.get('/detail_team', function(req, res){
 	var collection = db.collection('teams');
+	collection.findOne(ObjectId(req.query._id), function(err, result){
+		res.json(result);
+	});
+});
+
+api_user.get('/list_user', function(req, res){
+	var collection = db.collection('users');
+	collection.find({skill_id:req.query.skill_id}).toArray(function(err, result){
+		res.json(result);
+	});
+});
+
+api_user.get('/detail_user', function(req, res){
+	var collection = db.collection('users');
 	collection.findOne(ObjectId(req.query._id), function(err, result){
 		res.json(result);
 	});
@@ -172,6 +186,36 @@ api_user.post('/group_chat', upload.array(), function(req, res){
 	}}), function(err, result){
 		res.json(req.body);
 	};
+});
+
+api_user.post('/register_my_team', upload.array(), function(req, res){
+	var comp = db.collection('competitions');
+	var team = db.collection('teams');
+	var check = db.collection('competitions');
+	var response = {};
+	
+	check.findOne({joined_team:{$elemMatch:{_id:ObjectId(req.body._id_team)}}},{joined_team:1}, function(err, hasil){
+		if(hasil!=null){
+			response.success=false;
+			response.message="Mohon maaf, team Anda sudah tergabung di event ini";
+			res.json(response);
+		}else{
+			team.findOne(ObjectId(req.body._id_team),{member:0, chat:0}, function(err, data_team){
+				comp.updateOne({_id:ObjectId(req.body._id_competition)}, {$push:{
+					joined_team:{
+						_id:data_team._id,
+						team_name:data_team.team_name,
+						team_foto:data_team.team_foto
+					}
+				}}, function(err, result){
+					response.success=true;
+					response.message="Selamat, team Anda berhasil ikut dalam event ini";
+					res.json(response);
+				});
+			});
+		}
+	});
+
 });
 
 //MENDEFINISIKAN ROUTING PREFIX pada alamat / address http untuk /api_user
