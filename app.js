@@ -134,9 +134,11 @@ api_user.post('/create_team', upload.array('team_foto', 12), function(req, res){
 	var data_team = {
 		team_name:req.body.team_name,
 		team_foto:req.files[0].filename,
+		max_member:req.body.max_member,
 		member:[{
 			_id_user:req.headers.x_api_key,
-			role:0
+			role:0,
+			status:1
 		}]
 	}
 	collection.insertOne(data_team, function(err, result){
@@ -242,6 +244,74 @@ api_user.get('/my_joined_competition', function(req, res){
 			res.json(my_join_comp);
 		});
 	});
+});
+
+api_user.post('/join_team_to_member', upload.array(), function(req, res){
+	var check = db.collection('teams');
+	var team = db.collection('teams');
+	var user = db.collection('users');
+	var response = {};
+	check.findOne({_id:ObjectId(req.body._id_team), member:{$elemMatch:{_id_user:req.headers.x_api_key}}}, function(err, result){
+		if(result==null){
+			user.findOne({x_api_key:req.headers.x_api_key}, function(err, data_user){
+				var post_user = {};
+				post_user._id_user = req.headers.x_api_key;
+				post_user.name = data_user.firstname +" "+ data_user.lastname;
+				post_user.user_foto = data_user.user_foto;
+				post_user.status = 0;
+				post_user.role = 1;
+				team.updateOne({_id:ObjectId(req.body._id_team)}, {$push:{
+					member: post_user
+				}}, function(err, result){
+					response.success = true;
+					response.message = "Anda berhasil mendaftar menjadi member team, silahkan tunggu konfirmasi Admin Team";
+					res.json(response);
+				})	
+			});
+		}else{
+			response.success = false;
+			response.message = "Mohon maaf Anda telah mendaftar menjadi member team ini";
+			res.json(response);
+		}
+	});
+});
+
+api_user.post('/accept_member', upload.array(), function(req, res){
+	var team = db.collection('teams');
+	var response = {};
+	team.findOne({_id:ObjectId(req.body._id_team), member:{$elemMatch:{_id_user:req.headers.x_api_key, role:0}}}, function(err, check){
+		if(check!=null){
+			team.findOne(ObjectId(req.body._id_team), function(err, result){
+				var check_member = new Array();
+				var i, member_legal=0;
+				check_member = result.member;
+				for(i=0;i<check_member.length;i++){
+					if(check_member[i].status == 1){
+						member_legal+=1;
+					}
+				}
+				if(member_legal<result.max_member){
+					team.updateOne({_id:ObjectId(req.body._id_team), member:{$elemMatch:{_id_user:req.body._id_user}}}, {$set:{'member.$.status':1}}, {upsert:false}, function(err, hasil){
+						response.success = true;
+						response.message = "Selamat anggata team Anda bertambah";	
+						res.json(response);		
+					});
+				}else{
+					response.success = false;
+					response.message = "Mohon maaf, team Anda sudah mencapai maksimal anggota";
+					res.json(response);
+				}
+			});
+		}else{
+			response.success = false;
+			response.message = "Mohon maaf, anda tidak mempunyai hak";
+			res.json(response);
+		}
+	});
+});
+
+api_user.post('/invite_user', upload.array(), function(req, res){
+	res.json(req.body);
 });
 
 //MENDEFINISIKAN ROUTING PREFIX pada alamat / address http untuk /api_user
