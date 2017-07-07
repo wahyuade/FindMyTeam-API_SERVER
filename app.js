@@ -32,6 +32,9 @@ app.use(bodyParser.urlencoded({ extended: true })); //parsing x-form-url
 app.use(bodyParser.json());							//parsing app json
 
 // ===========ROUTING=============
+app.get('/', function(req, res){
+	res.json({message:'hello world'});
+});
 
 app.post('/register', upload.array(), function(req,res,next){
 	var collection = db.collection('users');
