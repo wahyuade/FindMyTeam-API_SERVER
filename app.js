@@ -38,7 +38,7 @@ app.post('/register', upload.array(), function(req,res,next){
 	collection.findOne({email:req.body.email}, function(err, result){
 		if(result == null){
 			var x_api_key = Math.random().toString(32).slice(2)+Math.random().toString(32).slice(2)+Math.random().toString(32).slice(2);
-			collection.insertOne({firstname:req.body.firstname,lastname:req.body.lastname,email:req.body.email,password:req.body.password, skill_id:req.body.skill_id, role:1, x_api_key:x_api_key}, function(err, docs){
+			collection.insertOne({firstname:req.body.firstname,lastname:req.body.lastname,email:req.body.email,password:req.body.password, skill_id:req.body.skill_id, role:0, x_api_key:x_api_key}, function(err, docs){
 				var response = {
 					success:true,
 					message:"Data berhasil di daftarkan"
