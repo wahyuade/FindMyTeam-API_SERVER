@@ -20,7 +20,8 @@ var storage = multer.diskStorage({
 });
 var upload = multer({ storage: storage });
 
-var url = 'mongodb://localhost:27017/find-my-team';
+// var url = 'mongodb://localhost:27017/find-my-team';
+var url = 'mongodb://wahyuade:bismillah@cluster0-shard-00-00-dsohl.mongodb.net:27017,cluster0-shard-00-01-dsohl.mongodb.net:27017,cluster0-shard-00-02-dsohl.mongodb.net:27017/find-my-team?ssl=true&replicaSet=Cluster0-shard-0&authSource=admin'
 mongodb.connect(url, function(err, dbase){
   	console.log("Connected successfully to server");
   	db = dbase;
